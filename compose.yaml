@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+      target: production
+    environment:
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      ORIGIN: ${ORIGIN:-http://localhost:1919}
+      PORT: 1919
+    ports:
+      - '1919:1919'
+    init: true
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:1919/').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
