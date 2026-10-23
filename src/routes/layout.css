@@ -26,7 +26,6 @@
 	box-sizing: border-box;
 }
 html {
-	min-width: 1024px;
 	background: #f4f6fa;
 }
 body {
@@ -95,6 +94,7 @@ button.small,
 .app-shell {
 	display: grid;
 	grid-template-columns: 232px minmax(0, 1fr);
+	min-width: 1024px;
 	min-height: 100vh;
 }
 .sidebar {
@@ -364,62 +364,6 @@ main {
 .kind-tree {
 	grid-column: span 6;
 }
-.screen-dashboard .content-grid .block:first-child {
-	grid-column: span 8;
-}
-.screen-dashboard .content-grid .block:nth-child(2) {
-	grid-column: span 4;
-}
-.screen-kyc-detail .kind-table:nth-child(2),
-.screen-account-detail .kind-table:nth-child(2) {
-	grid-column: span 6;
-}
-.screen-kyc-detail .content-grid .block:nth-child(3),
-.screen-account-detail .content-grid .block:nth-child(3) {
-	grid-column: 7 / -1;
-}
-.screen-client-detail .kind-facts,
-.screen-advisor-detail .kind-facts,
-.screen-product-detail .kind-facts,
-.screen-subscription-detail .kind-facts {
-	grid-column: span 6;
-}
-.screen-menus .kind-tree {
-	grid-column: span 5;
-}
-.screen-menus .kind-table {
-	grid-column: span 7;
-}
-.screen-config .content-grid .block:first-child,
-.screen-config .content-grid .block:last-child {
-	grid-column: 1 / -1;
-}
-.screen-config .content-grid .block:first-child .facts-list {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 12px;
-}
-.screen-config .content-grid .block:first-child .fact-row {
-	grid-template-columns: 1fr;
-	align-content: start;
-	gap: 7px;
-	min-height: 68px;
-	margin: 0;
-}
-.screen-config .content-grid .block:nth-child(2) .facts-list,
-.screen-config .content-grid .block:nth-child(3) .facts-list {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 18px 28px;
-}
-.screen-config .content-grid .block:nth-child(2) .fact-row,
-.screen-config .content-grid .block:nth-child(3) .fact-row {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	padding: 4px 0;
-	border: 0;
-}
 
 .table-wrap {
 	width: 100%;
@@ -658,11 +602,7 @@ td {
 	.kind-decision,
 	.kind-media,
 	.kind-chart,
-	.kind-tree,
-	.screen-dashboard .content-grid .block:first-child,
-	.screen-dashboard .content-grid .block:nth-child(2),
-	.screen-menus .kind-tree,
-	.screen-menus .kind-table {
+	.kind-tree {
 		grid-column: 1 / -1;
 	}
 }

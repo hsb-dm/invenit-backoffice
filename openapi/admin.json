@@ -1,0 +1,3338 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "INvenit Admin API",
+		"description": "Back-office API + XXL-Job executor (SmartCRM-style RBAC).",
+		"version": "v1"
+	},
+	"servers": [{ "url": "https://uat-wpaadmin.hsb.co.id", "description": "Generated server url" }],
+	"security": [{ "satoken": [] }],
+	"tags": [
+		{ "name": "admin-dashboard", "description": "Back-office dashboard tiles" },
+		{ "name": "admin-products", "description": "Product list / detail / create / publish / stats" },
+		{ "name": "admin-roles", "description": "Back-office roles & permission grants" },
+		{
+			"name": "admin-advisors",
+			"description": "Advisor applications, advisors, schemes and change requests"
+		},
+		{ "name": "admin-auth", "description": "Back-office login / 2FA / logout" },
+		{ "name": "admin-subscriptions", "description": "Subscription list / detail / actions" },
+		{ "name": "admin-otp", "description": "OTP log for customer support" },
+		{ "name": "health", "description": "Service health" },
+		{ "name": "admin-system", "description": "Menus / dictionary / config / kill switch / audit" },
+		{ "name": "admin-engine", "description": "Engine health, reconcile and deals pull" },
+		{ "name": "admin-files", "description": "Back-office file upload" },
+		{ "name": "admin-kyc", "description": "KYC review queue / assign / case / decision / reopen" },
+		{ "name": "admin-finance", "description": "Payments / mark-paid / refund / requery" },
+		{ "name": "admin-users", "description": "Back-office users & roles" },
+		{ "name": "admin-clients", "description": "Client list / detail / KTP / edit / block" }
+	],
+	"paths": {
+		"/admin/roles/{id}/menus": {
+			"get": {
+				"tags": ["admin-roles"],
+				"summary": "List a role's granted menus/buttons",
+				"operationId": "listMenus",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseRoleMenusResponse" } }
+						}
+					}
+				}
+			},
+			"put": {
+				"tags": ["admin-roles"],
+				"summary": "Replace a role's menu/button grants",
+				"operationId": "setMenus",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/UpdateRoleMenusRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseRoleMenusResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/config/{key}": {
+			"put": {
+				"tags": ["admin-system"],
+				"summary": "Update a config value",
+				"operationId": "updateConfig",
+				"parameters": [
+					{ "name": "key", "in": "path", "required": true, "schema": { "type": "string" } }
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/UpdateConfigRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/users": {
+			"get": {
+				"tags": ["admin-users"],
+				"summary": "List users",
+				"operationId": "listUsers",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseListUserDto" } }
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["admin-users"],
+				"summary": "Create user",
+				"operationId": "createUser",
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/CreateUserRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserDto" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/users/{id}/reset-2fa": {
+			"post": {
+				"tags": ["admin-users"],
+				"summary": "Reset a user's 2FA secret",
+				"operationId": "reset2fa",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseReset2faResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/subscriptions/{id}/reconcile": {
+			"post": {
+				"tags": ["admin-subscriptions"],
+				"summary": "A-35 reconcile one delivery with the engine",
+				"operationId": "reconcile",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSubscriptionReconcileResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/admin/subscriptions/{id}/actions": {
+			"post": {
+				"tags": ["admin-subscriptions"],
+				"summary": "A-21 subscription actions",
+				"operationId": "act",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/SubscriptionActionRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/roles": {
+			"get": {
+				"tags": ["admin-roles"],
+				"summary": "List roles",
+				"operationId": "listRoles",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseListRoleDto" } }
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["admin-roles"],
+				"summary": "Create a role",
+				"operationId": "createRole",
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/CreateRoleRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseRoleDto" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/products": {
+			"get": {
+				"tags": ["admin-products"],
+				"summary": "A-17 list products",
+				"operationId": "list",
+				"parameters": [
+					{ "name": "q", "in": "query", "required": false, "schema": { "type": "string" } },
+					{
+						"name": "status",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32" }
+					},
+					{
+						"name": "sourceKind",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32" }
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64", "default": 1 }
+					},
+					{
+						"name": "size",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32", "default": 50 }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseProductListResponse" } }
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["admin-products"],
+				"summary": "A-18 create a product draft",
+				"operationId": "create",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/CreateProductRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseMapStringObject" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/products/{id}/test/pass": {
+			"post": {
+				"tags": ["admin-products"],
+				"summary": "A-34 mark the performance test passed",
+				"operationId": "testPass",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/TestResultRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseTestResultResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/products/{id}/test/fail": {
+			"post": {
+				"tags": ["admin-products"],
+				"summary": "A-34 mark the performance test failed",
+				"operationId": "testFail",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/TestResultRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseTestResultResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/products/{id}/submit": {
+			"post": {
+				"tags": ["admin-products"],
+				"summary": "A-18 submit a product for review",
+				"operationId": "submit",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/products/{id}/stats": {
+			"post": {
+				"tags": ["admin-products"],
+				"summary": "A-19 import product stats",
+				"operationId": "stats",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/StatsImportRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseStatsImportResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/products/{id}/risk-tier": {
+			"post": {
+				"tags": ["admin-products"],
+				"summary": "A-18 set the product risk tier",
+				"operationId": "riskTier",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/RiskTierRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/products/{id}/publish": {
+			"post": {
+				"tags": ["admin-products"],
+				"summary": "A-18 publish a product",
+				"operationId": "publish",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/products/{id}/pricing": {
+			"post": {
+				"tags": ["admin-products"],
+				"summary": "A-18 add a price row",
+				"operationId": "pricing",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/PricingRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/products/{id}/masters": {
+			"post": {
+				"tags": ["admin-products"],
+				"summary": "A-33 add a product engine master",
+				"operationId": "addMaster",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/MasterRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseMasterResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/products/{id}/feature": {
+			"post": {
+				"tags": ["admin-products"],
+				"summary": "A-18 feature a product in the catalogue",
+				"operationId": "feature",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseMapStringBoolean" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/payments/{id}/requery": {
+			"post": {
+				"tags": ["admin-finance"],
+				"summary": "A-23 re-query the gateway",
+				"operationId": "requery",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/payments/{id}/refund": {
+			"post": {
+				"tags": ["admin-finance"],
+				"summary": "A-23 request a refund",
+				"operationId": "refund",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/RefundRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/payments/{id}/refund/approve": {
+			"post": {
+				"tags": ["admin-finance"],
+				"summary": "A-23 approve a refund (four-eyes)",
+				"operationId": "approveRefund",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/payments/{id}/mark-paid": {
+			"post": {
+				"tags": ["admin-finance"],
+				"summary": "A-23 mark a payment as paid",
+				"operationId": "markPaid",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/kyc/{id}/reopen": {
+			"post": {
+				"tags": ["admin-kyc"],
+				"summary": "A-11 reopen KYC",
+				"operationId": "reopen",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/KycReopenRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseKycReopenResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/kyc/{id}/decision": {
+			"post": {
+				"tags": ["admin-kyc"],
+				"summary": "A-10 KYC decision",
+				"operationId": "decide",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/KycDecisionRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseKycDecisionResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/kyc/{id}/assign": {
+			"post": {
+				"tags": ["admin-kyc"],
+				"summary": "A-08 assign a KYC case",
+				"operationId": "assign",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/KycAssignRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseKycAssignResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/kyc/bulk-assign": {
+			"post": {
+				"tags": ["admin-kyc"],
+				"summary": "A-08 bulk-assign KYC cases",
+				"operationId": "bulkAssign",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/KycBulkAssignRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseKycAssignResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/kill-switch/{name}": {
+			"post": {
+				"tags": ["admin-system"],
+				"summary": "Toggle a named kill switch",
+				"operationId": "killSwitch",
+				"parameters": [
+					{ "name": "name", "in": "path", "required": true, "schema": { "type": "string" } }
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/KillSwitchRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/files": {
+			"post": {
+				"tags": ["admin-files"],
+				"summary": "Upload a file (base64) as back office",
+				"operationId": "upload",
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/FileUploadRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseFileUploadResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/engine/reconcile": {
+			"post": {
+				"tags": ["admin-engine"],
+				"summary": "A-32 run engine reconcile once",
+				"operationId": "reconcile_1",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/EngineReconcileRequest" }
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseMapStringObject" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/engine/deals-pull": {
+			"post": {
+				"tags": ["admin-engine"],
+				"summary": "A-32 run the deals pull once",
+				"operationId": "dealsPull",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/EngineReconcileRequest" }
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseMapStringObject" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/clients/{id}/unblock": {
+			"post": {
+				"tags": ["admin-clients"],
+				"summary": "A-06 unblock a client",
+				"operationId": "unblock",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/ClientActionRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/clients/{id}/reset-link": {
+			"post": {
+				"tags": ["admin-clients"],
+				"summary": "A-06 send a password reset link",
+				"operationId": "resetLink",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/ClientActionRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/clients/{id}/logout": {
+			"post": {
+				"tags": ["admin-clients"],
+				"summary": "A-06 force logout",
+				"operationId": "logout",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/ClientActionRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/clients/{id}/broker-sync": {
+			"post": {
+				"tags": ["admin-clients"],
+				"summary": "A-36 sync a client's broker account",
+				"operationId": "brokerSync",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/BrokerSyncRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseBrokerSyncResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/clients/{id}/block": {
+			"post": {
+				"tags": ["admin-clients"],
+				"summary": "A-06 block a client",
+				"operationId": "block",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/ClientActionRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/auth/logout": {
+			"post": {
+				"tags": ["admin-auth"],
+				"summary": "Logout",
+				"operationId": "logout_1",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/auth/login": {
+			"post": {
+				"tags": ["admin-auth"],
+				"summary": "Login with credentials; returns a 2FA ticket",
+				"operationId": "login",
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseLoginData" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/auth/2fa": {
+			"post": {
+				"tags": ["admin-auth"],
+				"summary": "Verify TOTP and establish the session",
+				"operationId": "twoFactor",
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/TwoFactorRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseTwoFactorData" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/advisors/{id}/suspend": {
+			"post": {
+				"tags": ["admin-advisors"],
+				"summary": "A-16 suspend an advisor",
+				"operationId": "suspend",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/SuspendRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseOkAuditResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/advisors/{id}/scheme": {
+			"post": {
+				"tags": ["admin-advisors"],
+				"summary": "A-16 assign a fee scheme",
+				"operationId": "assignScheme",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/SchemeAssignRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseSchemeAssignResponse" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/admin/advisors/{id}/requests/{rid}/reject": {
+			"post": {
+				"tags": ["admin-advisors"],
+				"summary": "A-16b reject a change request",
+				"operationId": "rejectRequest",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					},
+					{
+						"name": "rid",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/ChangeRequestDecisionRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseChangeRequestResult" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/advisors/{id}/requests/{rid}/approve": {
+			"post": {
+				"tags": ["admin-advisors"],
+				"summary": "A-16b approve a change request",
+				"operationId": "approveRequest",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					},
+					{
+						"name": "rid",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/ChangeRequestDecisionRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseChangeRequestResult" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/advisors/applications/{id}/licence-check": {
+			"post": {
+				"tags": ["admin-advisors"],
+				"summary": "A-15 check the licence with the regulator",
+				"operationId": "licenceCheck",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseLicenceCheckResponse" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/admin/advisors/applications/{id}/decision": {
+			"post": {
+				"tags": ["admin-advisors"],
+				"summary": "A-15 approve or reject an application",
+				"operationId": "decide_1",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/AdvisorDecisionRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseAdvisorDecisionResponse" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/admin/users/{id}": {
+			"patch": {
+				"tags": ["admin-users"],
+				"summary": "Update user (display name / status / roles)",
+				"operationId": "updateUser",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserDto" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/roles/{id}": {
+			"delete": {
+				"tags": ["admin-roles"],
+				"summary": "Delete an unassigned role",
+				"operationId": "deleteRole",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			},
+			"patch": {
+				"tags": ["admin-roles"],
+				"summary": "Rename or enable/disable a role",
+				"operationId": "updateRole",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/UpdateRoleRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseRoleDto" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/products/{id}": {
+			"get": {
+				"tags": ["admin-products"],
+				"summary": "A-17 product detail",
+				"operationId": "detail",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseProductDetailResponse" }
+							}
+						}
+					}
+				}
+			},
+			"patch": {
+				"tags": ["admin-products"],
+				"summary": "A-18 edit a product",
+				"operationId": "update",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/UpdateProductRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/products/{id}/masters/{mid}": {
+			"patch": {
+				"tags": ["admin-products"],
+				"summary": "A-33 edit a product engine master",
+				"operationId": "updateMaster",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					},
+					{
+						"name": "mid",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/MasterRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseMasterResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/clients/{id}": {
+			"get": {
+				"tags": ["admin-clients"],
+				"summary": "A-03 client detail",
+				"operationId": "detail_1",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseClientDetailResponse" }
+							}
+						}
+					}
+				}
+			},
+			"patch": {
+				"tags": ["admin-clients"],
+				"summary": "A-05 edit client contact",
+				"operationId": "patch",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/PatchClientRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } }
+					}
+				}
+			}
+		},
+		"/admin/advisors/{id}": {
+			"get": {
+				"tags": ["admin-advisors"],
+				"summary": "A-14 advisor detail",
+				"operationId": "detail_2",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseAdvisorDetailResponse" }
+							}
+						}
+					}
+				}
+			},
+			"patch": {
+				"tags": ["admin-advisors"],
+				"summary": "A-16 edit an advisor",
+				"operationId": "edit",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": { "schema": { "$ref": "#/components/schemas/AdvisorEditRequest" } }
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseOkAuditResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/health": {
+			"get": {
+				"tags": ["health"],
+				"summary": "Liveness check",
+				"operationId": "health",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseString" } } }
+					}
+				}
+			}
+		},
+		"/admin/subscriptions": {
+			"get": {
+				"tags": ["admin-subscriptions"],
+				"summary": "A-20 list subscriptions",
+				"operationId": "list_1",
+				"parameters": [
+					{
+						"name": "status",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32" }
+					},
+					{
+						"name": "clientId",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64" }
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64", "default": 1 }
+					},
+					{
+						"name": "size",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32", "default": 50 }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseSubscriptionListResponse" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/admin/subscriptions/{id}": {
+			"get": {
+				"tags": ["admin-subscriptions"],
+				"summary": "A-20 subscription detail",
+				"operationId": "detail_3",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseSubscriptionDetailResponse" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/admin/payments": {
+			"get": {
+				"tags": ["admin-finance"],
+				"summary": "A-22 list payments",
+				"operationId": "list_2",
+				"parameters": [
+					{
+						"name": "status",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32" }
+					},
+					{
+						"name": "clientId",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64" }
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64", "default": 1 }
+					},
+					{
+						"name": "size",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32", "default": 50 }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponsePaymentListResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/otp": {
+			"get": {
+				"tags": ["admin-otp"],
+				"summary": "A-37 search the OTP log",
+				"operationId": "list_3",
+				"parameters": [
+					{ "name": "phone", "in": "query", "required": false, "schema": { "type": "string" } },
+					{
+						"name": "purpose",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32" }
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32" }
+					},
+					{
+						"name": "from",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "string", "format": "date" }
+					},
+					{
+						"name": "to",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "string", "format": "date" }
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64", "default": 1 }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseOtpLogResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/menus": {
+			"get": {
+				"tags": ["admin-system"],
+				"summary": "List menus & buttons",
+				"operationId": "listMenus_1",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseListSysMenu" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/kyc/{id}": {
+			"get": {
+				"tags": ["admin-kyc"],
+				"summary": "A-09 KYC case",
+				"operationId": "caseDetail",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseKycCaseResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/kyc/queue": {
+			"get": {
+				"tags": ["admin-kyc"],
+				"summary": "A-07 KYC review queue",
+				"operationId": "queue",
+				"parameters": [
+					{
+						"name": "status",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32" }
+					},
+					{ "name": "reason", "in": "query", "required": false, "schema": { "type": "string" } },
+					{ "name": "assignee", "in": "query", "required": false, "schema": { "type": "string" } },
+					{ "name": "sla", "in": "query", "required": false, "schema": { "type": "string" } },
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64", "default": 1 }
+					},
+					{
+						"name": "size",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32", "default": 50 }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseKycQueueResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/engine/health": {
+			"get": {
+				"tags": ["admin-engine"],
+				"summary": "A-31 engine health",
+				"operationId": "health_1",
+				"parameters": [
+					{
+						"name": "range",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "string", "default": "24h" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseMapStringObject" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/dictionary": {
+			"get": {
+				"tags": ["admin-system"],
+				"summary": "List dictionary groups",
+				"operationId": "listDictionaries",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseListSysDict" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/dictionary/{type}": {
+			"get": {
+				"tags": ["admin-system"],
+				"summary": "List dictionary items for a type",
+				"operationId": "listDictItems",
+				"parameters": [
+					{ "name": "type", "in": "path", "required": true, "schema": { "type": "string" } }
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseListSysDictItem" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/dashboard": {
+			"get": {
+				"tags": ["admin-dashboard"],
+				"summary": "A-01 dashboard tiles",
+				"operationId": "dashboard",
+				"parameters": [
+					{
+						"name": "range",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "string", "default": "14d" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseDashboardResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/config": {
+			"get": {
+				"tags": ["admin-system"],
+				"summary": "List config",
+				"operationId": "listConfig",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseListConfigDto" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/clients": {
+			"get": {
+				"tags": ["admin-clients"],
+				"summary": "A-02 list clients",
+				"operationId": "list_4",
+				"parameters": [
+					{ "name": "q", "in": "query", "required": false, "schema": { "type": "string" } },
+					{
+						"name": "kycStatus",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32" }
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64", "default": 1 }
+					},
+					{
+						"name": "size",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32", "default": 50 }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseClientListResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/clients/{id}/ktp-url": {
+			"get": {
+				"tags": ["admin-clients"],
+				"summary": "A-04 signed KTP url",
+				"operationId": "ktpUrl",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseString" } } }
+					}
+				}
+			}
+		},
+		"/admin/audit": {
+			"get": {
+				"tags": ["admin-system"],
+				"summary": "List audit log",
+				"operationId": "listAudit",
+				"parameters": [
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64", "default": 1 }
+					},
+					{
+						"name": "size",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32", "default": 50 }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseAuditListResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/advisors": {
+			"get": {
+				"tags": ["admin-advisors"],
+				"summary": "A-14 list advisors",
+				"operationId": "listAdvisors",
+				"parameters": [
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64", "default": 1 }
+					},
+					{
+						"name": "size",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32", "default": 50 }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseAdvisorListResponse" } }
+						}
+					}
+				}
+			}
+		},
+		"/admin/advisors/{id}/requests": {
+			"get": {
+				"tags": ["admin-advisors"],
+				"summary": "A-16b advisor change requests",
+				"operationId": "listRequests",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "integer", "format": "int64" }
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64", "default": 1 }
+					},
+					{
+						"name": "size",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32", "default": 50 }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseAdvisorChangeRequestListResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/admin/advisors/applications": {
+			"get": {
+				"tags": ["admin-advisors"],
+				"summary": "A-14 list advisor applications",
+				"operationId": "listApplications",
+				"parameters": [
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int64", "default": 1 }
+					},
+					{
+						"name": "size",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "integer", "format": "int32", "default": 50 }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseAdvisorApplicationListResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"UpdateRoleMenusRequest": {
+				"type": "object",
+				"properties": {
+					"menuIds": {
+						"type": "array",
+						"items": { "type": "integer", "format": "int64" },
+						"maxItems": 500,
+						"minItems": 0
+					}
+				},
+				"required": ["menuIds"]
+			},
+			"ApiResponseRoleMenusResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/RoleMenusResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"RoleMenusResponse": {
+				"type": "object",
+				"properties": {
+					"roleId": { "type": "integer", "format": "int64" },
+					"menuIds": { "type": "array", "items": { "type": "integer", "format": "int64" } }
+				}
+			},
+			"UpdateConfigRequest": {
+				"type": "object",
+				"properties": { "value": { "type": "string", "minLength": 1 } },
+				"required": ["value"]
+			},
+			"ApiResponseVoid": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": {},
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"CreateUserRequest": {
+				"type": "object",
+				"properties": {
+					"username": { "type": "string", "minLength": 1 },
+					"displayName": { "type": "string" },
+					"password": { "type": "string", "minLength": 1 },
+					"roleKeys": { "type": "array", "items": { "type": "string" } }
+				},
+				"required": ["password", "username"]
+			},
+			"ApiResponseUserDto": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/UserDto" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"UserDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"username": { "type": "string" },
+					"displayName": { "type": "string" },
+					"status": { "type": "integer", "format": "int32" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"roles": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"ApiResponseReset2faResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/Reset2faResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"Reset2faResponse": {
+				"type": "object",
+				"properties": {
+					"userId": { "type": "integer", "format": "int64" },
+					"username": { "type": "string" },
+					"totpSecret": { "type": "string" }
+				}
+			},
+			"ApiResponseSubscriptionReconcileResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/SubscriptionReconcileResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"SubscriptionReconcileResponse": {
+				"type": "object",
+				"properties": {
+					"engineStatus": { "type": "string" },
+					"lastReconciledAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"SubscriptionActionRequest": {
+				"type": "object",
+				"properties": {
+					"action": { "type": "string", "minLength": 1 },
+					"reason": { "type": "string" }
+				},
+				"required": ["action"]
+			},
+			"CreateRoleRequest": {
+				"type": "object",
+				"properties": {
+					"roleKey": { "type": "string", "minLength": 1, "pattern": "^[a-z][a-z0-9_]{1,63}$" },
+					"roleName": { "type": "string", "maxLength": 100, "minLength": 0 }
+				},
+				"required": ["roleKey", "roleName"]
+			},
+			"ApiResponseRoleDto": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/RoleDto" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"RoleDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"roleKey": { "type": "string" },
+					"roleName": { "type": "string" },
+					"status": { "type": "integer", "format": "int32" }
+				}
+			},
+			"CreateProductRequest": {
+				"type": "object",
+				"properties": {
+					"slug": { "type": "string" },
+					"name": { "type": "string" },
+					"advisorId": { "type": "integer", "format": "int64" },
+					"tagline": { "type": "string" },
+					"description": { "type": "string" },
+					"deliveryType": { "type": "integer", "format": "int32" },
+					"brokerScope": { "type": "integer", "format": "int32" },
+					"sourceKind": { "type": "integer", "format": "int32" },
+					"sourceLabel": { "type": "string" },
+					"instruments": { "type": "string" },
+					"riskLevel": { "type": "integer", "format": "int32" },
+					"minCapitalUsd": { "type": "integer", "format": "int32" },
+					"coverImageUrl": { "type": "string" },
+					"lane": { "type": "integer", "format": "int32" },
+					"platformFeePct": { "type": "number" }
+				}
+			},
+			"ApiResponseMapStringObject": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "type": "object", "additionalProperties": {} },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"TestResultRequest": { "type": "object", "properties": { "note": { "type": "string" } } },
+			"ApiResponseTestResultResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/TestResultResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"TestResultResponse": {
+				"type": "object",
+				"properties": {
+					"testStatus": { "type": "integer", "format": "int32" },
+					"auditId": { "type": "integer", "format": "int64" }
+				}
+			},
+			"StatRow": {
+				"type": "object",
+				"properties": {
+					"asOfDate": { "type": "string", "format": "date" },
+					"return1mPct": { "type": "number" },
+					"return3mPct": { "type": "number" },
+					"returnYtdPct": { "type": "number" },
+					"maxDrawdownPct": { "type": "number" },
+					"winRatePct": { "type": "number" },
+					"tradesCount": { "type": "integer", "format": "int32" },
+					"source": { "type": "integer", "format": "int32" }
+				}
+			},
+			"StatsImportRequest": {
+				"type": "object",
+				"properties": {
+					"rows": { "type": "array", "items": { "$ref": "#/components/schemas/StatRow" } },
+					"confirm": { "type": "boolean" }
+				}
+			},
+			"ApiResponseStatsImportResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/StatsImportResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"Row": {
+				"type": "object",
+				"properties": { "asOfDate": { "type": "string" }, "change": { "type": "string" } }
+			},
+			"StatsImportResponse": {
+				"type": "object",
+				"properties": {
+					"confirmed": { "type": "boolean" },
+					"stored": { "type": "integer", "format": "int32" },
+					"diff": { "type": "array", "items": { "$ref": "#/components/schemas/Row" } }
+				}
+			},
+			"RiskTierRequest": {
+				"type": "object",
+				"properties": { "riskLevel": { "type": "integer", "format": "int32" } },
+				"required": ["riskLevel"]
+			},
+			"PricingRequest": {
+				"type": "object",
+				"properties": {
+					"model": { "type": "integer", "format": "int32" },
+					"amountIdr": { "type": "integer", "format": "int32" },
+					"feePct": { "type": "number" },
+					"hwm": { "type": "integer", "format": "int32" },
+					"periodDays": { "type": "integer", "format": "int32" },
+					"effectiveFrom": { "type": "string", "format": "date" }
+				}
+			},
+			"MasterRequest": {
+				"type": "object",
+				"properties": {
+					"brokerId": { "type": "integer", "format": "int64" },
+					"masterLogin": { "type": "string", "minLength": 1 },
+					"eaId": { "type": "string" },
+					"eaName": { "type": "string" },
+					"status": { "type": "integer", "format": "int32" }
+				},
+				"required": ["brokerId", "masterLogin"]
+			},
+			"ApiResponseMasterResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/MasterResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"MasterResponse": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"status": { "type": "integer", "format": "int32" }
+				}
+			},
+			"ApiResponseMapStringBoolean": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "type": "object", "additionalProperties": { "type": "boolean" } },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"RefundRequest": {
+				"type": "object",
+				"properties": {
+					"reason": { "type": "string" },
+					"bankAccountId": { "type": "integer", "format": "int64" }
+				}
+			},
+			"KycReopenRequest": {
+				"type": "object",
+				"properties": { "reason": { "type": "string", "minLength": 1 } },
+				"required": ["reason"]
+			},
+			"ApiResponseKycReopenResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/KycReopenResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"KycReopenResponse": {
+				"type": "object",
+				"properties": {
+					"kycStatus": { "type": "integer", "format": "int32" },
+					"ocrAttempts": { "type": "integer", "format": "int32" },
+					"selfieAttempts": { "type": "integer", "format": "int32" }
+				}
+			},
+			"KycDecisionRequest": {
+				"type": "object",
+				"properties": {
+					"decision": {
+						"type": "string",
+						"minLength": 1,
+						"pattern": "approve|reject|request_selfie"
+					},
+					"reasonCode": { "type": "string" },
+					"note": { "type": "string" }
+				},
+				"required": ["decision"]
+			},
+			"ApiResponseKycDecisionResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/KycDecisionResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"KycDecisionResponse": {
+				"type": "object",
+				"properties": {
+					"kycStatus": { "type": "integer", "format": "int32" },
+					"approvalType": { "type": "integer", "format": "int32" },
+					"auditId": { "type": "integer", "format": "int64" }
+				}
+			},
+			"KycAssignRequest": {
+				"type": "object",
+				"properties": { "assigneeId": { "type": "integer", "format": "int64" } },
+				"required": ["assigneeId"]
+			},
+			"ApiResponseKycAssignResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/KycAssignResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"KycAssignResponse": {
+				"type": "object",
+				"properties": {
+					"ok": { "type": "boolean" },
+					"lockedUntil": { "type": "string", "format": "date-time" }
+				}
+			},
+			"KycBulkAssignRequest": {
+				"type": "object",
+				"properties": {
+					"ids": {
+						"type": "array",
+						"items": { "type": "integer", "format": "int64" },
+						"minItems": 1
+					},
+					"assigneeId": { "type": "integer", "format": "int64" }
+				},
+				"required": ["assigneeId", "ids"]
+			},
+			"KillSwitchRequest": {
+				"type": "object",
+				"properties": {
+					"on": { "type": "boolean" },
+					"reason": { "type": "string", "minLength": 1 },
+					"confirmName": { "type": "string" }
+				},
+				"required": ["reason"]
+			},
+			"FileUploadRequest": {
+				"type": "object",
+				"properties": {
+					"fileName": { "type": "string" },
+					"contentType": { "type": "string" },
+					"contentBase64": { "type": "string", "minLength": 1 }
+				},
+				"required": ["contentBase64"]
+			},
+			"ApiResponseFileUploadResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/FileUploadResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"FileUploadResponse": {
+				"type": "object",
+				"properties": {
+					"fileId": { "type": "integer", "format": "int64" },
+					"fileHash": { "type": "string" },
+					"fileName": { "type": "string" },
+					"fileSize": { "type": "integer", "format": "int64" },
+					"contentType": { "type": "string" }
+				}
+			},
+			"EngineReconcileRequest": {
+				"type": "object",
+				"properties": { "deliveryId": { "type": "integer", "format": "int64" } }
+			},
+			"ClientActionRequest": { "type": "object", "properties": { "reason": { "type": "string" } } },
+			"BrokerSyncRequest": {
+				"type": "object",
+				"properties": { "brokerAccountId": { "type": "integer", "format": "int64" } },
+				"required": ["brokerAccountId"]
+			},
+			"ApiResponseBrokerSyncResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/BrokerSyncResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"BrokerSyncResponse": {
+				"type": "object",
+				"properties": {
+					"accounts": {
+						"type": "array",
+						"items": { "type": "object", "additionalProperties": {} }
+					},
+					"kycStatus": { "type": "integer", "format": "int32" },
+					"auditId": { "type": "integer", "format": "int64" }
+				}
+			},
+			"LoginRequest": {
+				"type": "object",
+				"properties": {
+					"username": { "type": "string", "minLength": 1 },
+					"password": { "type": "string", "minLength": 1 }
+				},
+				"required": ["password", "username"]
+			},
+			"ApiResponseLoginData": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/LoginData" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"LoginData": {
+				"type": "object",
+				"properties": { "twoFactorRequired": { "type": "boolean" }, "ticket": { "type": "string" } }
+			},
+			"TwoFactorRequest": {
+				"type": "object",
+				"properties": {
+					"ticket": { "type": "string", "minLength": 1 },
+					"code": { "type": "string", "minLength": 1 }
+				},
+				"required": ["code", "ticket"]
+			},
+			"ApiResponseTwoFactorData": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/TwoFactorData" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"TwoFactorData": {
+				"type": "object",
+				"properties": { "tokenName": { "type": "string" }, "tokenValue": { "type": "string" } }
+			},
+			"SuspendRequest": { "type": "object", "properties": { "reason": { "type": "string" } } },
+			"ApiResponseOkAuditResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/OkAuditResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"OkAuditResponse": {
+				"type": "object",
+				"properties": {
+					"ok": { "type": "boolean" },
+					"auditId": { "type": "integer", "format": "int64" }
+				}
+			},
+			"SchemeAssignRequest": {
+				"type": "object",
+				"properties": {
+					"schemeId": { "type": "integer", "format": "int64" },
+					"reason": { "type": "string" }
+				}
+			},
+			"ApiResponseSchemeAssignResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/SchemeAssignResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"SchemeAssignResponse": {
+				"type": "object",
+				"properties": {
+					"ok": { "type": "boolean" },
+					"effectiveFrom": { "type": "string", "format": "date" },
+					"auditId": { "type": "integer", "format": "int64" }
+				}
+			},
+			"ChangeRequestDecisionRequest": {
+				"type": "object",
+				"properties": { "note": { "type": "string" } }
+			},
+			"ApiResponseChangeRequestResult": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/ChangeRequestResult" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"ChangeRequestResult": {
+				"type": "object",
+				"properties": {
+					"requestId": { "type": "integer", "format": "int64" },
+					"status": { "type": "integer", "format": "int32" },
+					"appliedAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"ApiResponseLicenceCheckResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/LicenceCheckResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"LicenceCheck": {
+				"type": "object",
+				"properties": {
+					"result": { "type": "string" },
+					"raw": { "type": "object", "additionalProperties": {} }
+				}
+			},
+			"LicenceCheckResponse": {
+				"type": "object",
+				"properties": { "licenceCheck": { "$ref": "#/components/schemas/LicenceCheck" } }
+			},
+			"AdvisorDecisionRequest": {
+				"type": "object",
+				"properties": {
+					"decision": { "type": "string" },
+					"reason": { "type": "string" },
+					"schemeId": { "type": "integer", "format": "int64" }
+				}
+			},
+			"AdvisorDecisionResponse": {
+				"type": "object",
+				"properties": {
+					"licenceCheck": { "$ref": "#/components/schemas/LicenceCheck" },
+					"advisorId": { "type": "integer", "format": "int64" }
+				}
+			},
+			"ApiResponseAdvisorDecisionResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/AdvisorDecisionResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"UpdateUserRequest": {
+				"type": "object",
+				"properties": {
+					"displayName": { "type": "string" },
+					"status": { "type": "integer", "format": "int32" },
+					"roleKeys": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"UpdateRoleRequest": {
+				"type": "object",
+				"properties": {
+					"roleName": { "type": "string", "maxLength": 100, "minLength": 0 },
+					"status": { "type": "integer", "format": "int32", "maximum": 1, "minimum": 0 }
+				}
+			},
+			"UpdateProductRequest": {
+				"type": "object",
+				"properties": {
+					"name": { "type": "string" },
+					"tagline": { "type": "string" },
+					"description": { "type": "string" },
+					"riskLevel": { "type": "integer", "format": "int32" },
+					"minCapitalUsd": { "type": "integer", "format": "int32" },
+					"coverImageUrl": { "type": "string" },
+					"instruments": { "type": "string" },
+					"brokerScope": { "type": "integer", "format": "int32" },
+					"sourceLabel": { "type": "string" },
+					"platformFeePct": { "type": "number" }
+				}
+			},
+			"PatchClientRequest": {
+				"type": "object",
+				"properties": { "email": { "type": "string", "format": "email" } }
+			},
+			"AdvisorEditRequest": {
+				"type": "object",
+				"properties": {
+					"displayName": { "type": "string" },
+					"logoUrl": { "type": "string" },
+					"bio": { "type": "string" },
+					"taxType": { "type": "integer", "format": "int32" },
+					"taxId": { "type": "string" },
+					"bankName": { "type": "string" },
+					"bankAccountNo": { "type": "string" },
+					"bankAccountName": { "type": "string" },
+					"bankCurrency": { "type": "string" },
+					"status": { "type": "integer", "format": "int32" },
+					"reason": { "type": "string" }
+				}
+			},
+			"ApiResponseString": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "type": "string" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"ApiResponseListUserDto": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "type": "array", "items": { "$ref": "#/components/schemas/UserDto" } },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"ApiResponseSubscriptionListResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/SubscriptionListResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"SubscriptionListResponse": {
+				"type": "object",
+				"properties": {
+					"items": { "type": "array", "items": { "$ref": "#/components/schemas/Row" } },
+					"total": { "type": "integer", "format": "int64" }
+				}
+			},
+			"ApiResponseSubscriptionDetailResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/SubscriptionDetailResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"PaymentView": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"method": { "type": "integer", "format": "int32" },
+					"amountIdr": { "type": "integer", "format": "int32" },
+					"status": { "type": "integer", "format": "int32" },
+					"gatewayRef": { "type": "string" },
+					"paidAt": { "type": "string", "format": "date-time" },
+					"createdAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"PeriodView": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"periodStart": { "type": "string", "format": "date" },
+					"periodEnd": { "type": "string", "format": "date" },
+					"totalIdr": { "type": "integer", "format": "int32" },
+					"status": { "type": "integer", "format": "int32" }
+				}
+			},
+			"SubscriptionDetailResponse": {
+				"type": "object",
+				"properties": {
+					"subscription": { "$ref": "#/components/schemas/SubscriptionView" },
+					"payments": { "type": "array", "items": { "$ref": "#/components/schemas/PaymentView" } },
+					"billingPeriods": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/PeriodView" }
+					},
+					"allowedActions": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"SubscriptionView": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"clientId": { "type": "integer", "format": "int64" },
+					"productId": { "type": "integer", "format": "int64" },
+					"clientTradingAccountId": { "type": "integer", "format": "int64" },
+					"pricingModel": { "type": "integer", "format": "int32" },
+					"pricingAmountIdr": { "type": "integer", "format": "int32" },
+					"pricingFeePct": { "type": "number" },
+					"pricingHwm": { "type": "integer", "format": "int32" },
+					"periodDays": { "type": "integer", "format": "int32" },
+					"autoActivateAfterDays": { "type": "integer", "format": "int32" },
+					"status": { "type": "integer", "format": "int32" },
+					"paidAt": { "type": "string", "format": "date-time" },
+					"activationDeadline": { "type": "string", "format": "date-time" },
+					"activatedAt": { "type": "string", "format": "date-time" },
+					"currentPeriodStart": { "type": "string", "format": "date" },
+					"currentPeriodEnd": { "type": "string", "format": "date" },
+					"cancelledAt": { "type": "string", "format": "date-time" },
+					"suspendedReason": { "type": "string" },
+					"createdAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"ApiResponseListRoleDto": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "type": "array", "items": { "$ref": "#/components/schemas/RoleDto" } },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"ApiResponseProductListResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/ProductListResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"ProductListResponse": {
+				"type": "object",
+				"properties": {
+					"items": { "type": "array", "items": { "$ref": "#/components/schemas/Row" } },
+					"total": { "type": "integer", "format": "int64" }
+				}
+			},
+			"ApiResponseProductDetailResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/ProductDetailResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"ProductDetailResponse": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"slug": { "type": "string" },
+					"name": { "type": "string" },
+					"advisorId": { "type": "integer", "format": "int64" },
+					"tagline": { "type": "string" },
+					"description": { "type": "string" },
+					"deliveryType": { "type": "integer", "format": "int32" },
+					"brokerScope": { "type": "integer", "format": "int32" },
+					"sourceKind": { "type": "integer", "format": "int32" },
+					"sourceLabel": { "type": "string" },
+					"instruments": { "type": "string" },
+					"riskLevel": { "type": "integer", "format": "int32" },
+					"minCapitalUsd": { "type": "integer", "format": "int32" },
+					"coverImageUrl": { "type": "string" },
+					"testStatus": { "type": "integer", "format": "int32" },
+					"status": { "type": "integer", "format": "int32" },
+					"lane": { "type": "integer", "format": "int32" },
+					"platformFeePct": { "type": "number" },
+					"currentPricing": { "type": "object", "additionalProperties": {} },
+					"latestStat": { "type": "object", "additionalProperties": {} },
+					"allowedActions": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"ApiResponsePaymentListResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/PaymentListResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"PaymentListResponse": {
+				"type": "object",
+				"properties": {
+					"items": { "type": "array", "items": { "$ref": "#/components/schemas/Row" } },
+					"total": { "type": "integer", "format": "int64" }
+				}
+			},
+			"ApiResponseOtpLogResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/OtpLogResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"Item": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"code": { "type": "string" },
+					"phone": { "type": "string" },
+					"status": { "type": "integer", "format": "int32" },
+					"channel": { "type": "integer", "format": "int32" },
+					"purpose": { "type": "integer", "format": "int32" },
+					"attemptCount": { "type": "integer", "format": "int32" },
+					"expiresAt": { "type": "string", "format": "date-time" },
+					"usedAt": { "type": "string", "format": "date-time" },
+					"createdAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"OtpLogResponse": {
+				"type": "object",
+				"properties": {
+					"items": { "type": "array", "items": { "$ref": "#/components/schemas/Item" } }
+				}
+			},
+			"ApiResponseListSysMenu": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "type": "array", "items": { "$ref": "#/components/schemas/SysMenu" } },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"SysMenu": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"version": { "type": "integer", "format": "int32" },
+					"parentId": { "type": "integer", "format": "int64" },
+					"permissionKey": { "type": "string" },
+					"name": { "type": "string" },
+					"type": { "type": "integer", "format": "int32" },
+					"path": { "type": "string" },
+					"sortOrder": { "type": "integer", "format": "int32" },
+					"status": { "type": "integer", "format": "int32" }
+				}
+			},
+			"ApiResponseKycCaseResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/KycCaseResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"Attempt": {
+				"type": "object",
+				"properties": {
+					"type": { "type": "string" },
+					"score": { "type": "number", "format": "double" }
+				}
+			},
+			"Documents": {
+				"type": "object",
+				"properties": { "ktpUrl": { "type": "string" }, "selfieUrl": { "type": "string" } }
+			},
+			"KycCaseResponse": {
+				"type": "object",
+				"properties": {
+					"documents": { "$ref": "#/components/schemas/Documents" },
+					"ocr": { "type": "object", "additionalProperties": {} },
+					"typed": { "type": "object", "additionalProperties": {} },
+					"attempts": { "type": "array", "items": { "$ref": "#/components/schemas/Attempt" } },
+					"riskSummary": { "type": "object", "additionalProperties": {} },
+					"allowedDecisions": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"ApiResponseKycQueueResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/KycQueueResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"CaseRow": {
+				"type": "object",
+				"properties": {
+					"clientId": { "type": "integer", "format": "int64" },
+					"name": { "type": "string" },
+					"reason": { "type": "string" },
+					"attempts": { "type": "integer", "format": "int32" },
+					"submittedAt": { "type": "string", "format": "date-time" },
+					"assignedTo": { "type": "integer", "format": "int64" },
+					"slaLeftMin": { "type": "integer", "format": "int64" }
+				}
+			},
+			"KycQueueResponse": {
+				"type": "object",
+				"properties": {
+					"items": { "type": "array", "items": { "$ref": "#/components/schemas/CaseRow" } },
+					"tiles": { "$ref": "#/components/schemas/Tiles" },
+					"total": { "type": "integer", "format": "int64" }
+				}
+			},
+			"Tiles": {
+				"type": "object",
+				"properties": {
+					"open": { "type": "integer", "format": "int64" },
+					"breached": { "type": "integer", "format": "int64" },
+					"mine": { "type": "integer", "format": "int64" }
+				}
+			},
+			"ApiResponseListSysDict": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "type": "array", "items": { "$ref": "#/components/schemas/SysDict" } },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"SysDict": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"version": { "type": "integer", "format": "int32" },
+					"dictType": { "type": "string" },
+					"dictName": { "type": "string" },
+					"status": { "type": "integer", "format": "int32" }
+				}
+			},
+			"ApiResponseListSysDictItem": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "type": "array", "items": { "$ref": "#/components/schemas/SysDictItem" } },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"SysDictItem": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"version": { "type": "integer", "format": "int32" },
+					"dictType": { "type": "string" },
+					"itemKey": { "type": "string" },
+					"labelEn": { "type": "string" },
+					"labelId": { "type": "string" },
+					"labelZh": { "type": "string" },
+					"sortOrder": { "type": "integer", "format": "int32" },
+					"status": { "type": "integer", "format": "int32" }
+				}
+			},
+			"ApiResponseDashboardResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/DashboardResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"DashboardResponse": {
+				"type": "object",
+				"properties": {
+					"queue": { "$ref": "#/components/schemas/QueueTiles" },
+					"money": { "$ref": "#/components/schemas/MoneyTiles" }
+				}
+			},
+			"MoneyTiles": {
+				"type": "object",
+				"properties": {
+					"mrrIdr": { "type": "integer", "format": "int64" },
+					"paidTodayIdr": { "type": "integer", "format": "int64" },
+					"activeSubscriptions": { "type": "integer", "format": "int64" }
+				}
+			},
+			"QueueTiles": {
+				"type": "object",
+				"properties": {
+					"kycOpen": { "type": "integer", "format": "int64" },
+					"kycBreached": { "type": "integer", "format": "int64" },
+					"paymentsPending": { "type": "integer", "format": "int64" },
+					"refundsPending": { "type": "integer", "format": "int64" }
+				}
+			},
+			"ApiResponseListConfigDto": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "type": "array", "items": { "$ref": "#/components/schemas/ConfigDto" } },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"ConfigDto": {
+				"type": "object",
+				"properties": {
+					"key": { "type": "string" },
+					"value": { "type": "string" },
+					"description": { "type": "string" }
+				}
+			},
+			"ApiResponseClientListResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/ClientListResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"ClientListResponse": {
+				"type": "object",
+				"properties": {
+					"items": { "type": "array", "items": { "$ref": "#/components/schemas/ClientRow" } },
+					"total": { "type": "integer", "format": "int64" }
+				}
+			},
+			"ClientRow": {
+				"type": "object",
+				"properties": {
+					"clientId": { "type": "integer", "format": "int64" },
+					"phone": { "type": "string" },
+					"name": { "type": "string" },
+					"status": { "type": "integer", "format": "int32" },
+					"kycStatus": { "type": "integer", "format": "int32" },
+					"createdAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"ApiResponseClientDetailResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/ClientDetailResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"ClientDetailResponse": {
+				"type": "object",
+				"properties": {
+					"clientId": { "type": "integer", "format": "int64" },
+					"phone": { "type": "string" },
+					"email": { "type": "string" },
+					"fullName": { "type": "string" },
+					"status": { "type": "integer", "format": "int32" },
+					"kycStatus": { "type": "integer", "format": "int32" },
+					"kycStepReached": { "type": "integer", "format": "int32" },
+					"riskLevel": { "type": "integer", "format": "int32" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"allowedActions": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"ApiResponseAuditListResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/AuditListResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"AuditDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"adminId": { "type": "integer", "format": "int64" },
+					"role": { "type": "string" },
+					"action": { "type": "string" },
+					"entity": { "type": "string" },
+					"entityId": { "type": "integer", "format": "int64" },
+					"reason": { "type": "string" },
+					"ip": { "type": "string" },
+					"requestId": { "type": "string" },
+					"createdAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"AuditListResponse": {
+				"type": "object",
+				"properties": {
+					"items": { "type": "array", "items": { "$ref": "#/components/schemas/AuditDto" } },
+					"total": { "type": "integer", "format": "int64" }
+				}
+			},
+			"AdvisorListResponse": {
+				"type": "object",
+				"properties": {
+					"items": { "type": "array", "items": { "$ref": "#/components/schemas/Item" } }
+				}
+			},
+			"ApiResponseAdvisorListResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/AdvisorListResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"Advisor": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"type": { "type": "integer", "format": "int32" },
+					"name": { "type": "string" },
+					"displayName": { "type": "string" },
+					"licenseNo": { "type": "string" },
+					"licenseExpiresAt": { "type": "string", "format": "date" },
+					"logoUrl": { "type": "string" },
+					"bio": { "type": "string" },
+					"taxType": { "type": "integer", "format": "int32" },
+					"taxId": { "type": "string" },
+					"bankName": { "type": "string" },
+					"bankAccountNo": { "type": "string" },
+					"bankAccountName": { "type": "string" },
+					"bankCurrency": { "type": "string" },
+					"status": { "type": "integer", "format": "int32" },
+					"createdAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"AdvisorDetailResponse": {
+				"type": "object",
+				"properties": {
+					"advisor": { "$ref": "#/components/schemas/Advisor" },
+					"products": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } },
+					"schemeHistory": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/SchemeHistory" }
+					},
+					"wallet": { "$ref": "#/components/schemas/Wallet" }
+				}
+			},
+			"ApiResponseAdvisorDetailResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/AdvisorDetailResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"Product": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"slug": { "type": "string" },
+					"name": { "type": "string" },
+					"status": { "type": "integer", "format": "int32" },
+					"testStatus": { "type": "integer", "format": "int32" }
+				}
+			},
+			"SchemeHistory": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer", "format": "int64" },
+					"schemeId": { "type": "integer", "format": "int64" },
+					"schemeName": { "type": "string" },
+					"platformFeePct": { "type": "number" },
+					"effectiveFrom": { "type": "string", "format": "date" },
+					"effectiveTo": { "type": "string", "format": "date" }
+				}
+			},
+			"Wallet": {
+				"type": "object",
+				"properties": { "balanceNetIdr": { "type": "integer", "format": "int64" } }
+			},
+			"AdvisorChangeRequestListResponse": {
+				"type": "object",
+				"properties": {
+					"items": { "type": "array", "items": { "$ref": "#/components/schemas/Item" } }
+				}
+			},
+			"ApiResponseAdvisorChangeRequestListResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/AdvisorChangeRequestListResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			},
+			"AdvisorApplicationListResponse": {
+				"type": "object",
+				"properties": {
+					"items": { "type": "array", "items": { "$ref": "#/components/schemas/Item" } }
+				}
+			},
+			"ApiResponseAdvisorApplicationListResponse": {
+				"type": "object",
+				"properties": {
+					"status": { "type": "string" },
+					"code": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/AdvisorApplicationListResponse" },
+					"meta": { "type": "object", "additionalProperties": {} },
+					"message": { "type": "string" },
+					"details": {}
+				}
+			}
+		},
+		"securitySchemes": {
+			"satoken": {
+				"type": "apiKey",
+				"description": "tokenValue from POST /admin/auth/2fa (value only)",
+				"name": "satoken",
+				"in": "header"
+			}
+		}
+	}
+}

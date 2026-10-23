@@ -1,0 +1,165 @@
+.query-status {
+	color: var(--muted);
+	margin: 16px 0;
+}
+.query-error {
+	color: #b42332;
+	padding: 12px;
+	background: #fff3f3;
+	border-radius: 7px;
+}
+.api-section-heading {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	align-items: center;
+	margin-bottom: 16px;
+}
+.api-filters {
+	display: flex;
+	align-items: end;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin: 16px 0;
+}
+.api-filters label {
+	display: grid;
+	gap: 6px;
+	color: var(--muted);
+	font-size: 12px;
+}
+.api-filters input,
+.contract-field input,
+.contract-field select {
+	min-width: 0;
+	width: 100%;
+	min-height: 36px;
+	border: 1px solid var(--border);
+	border-radius: 7px;
+	padding: 7px 10px;
+	background: #fff;
+	color: #1d2433;
+}
+.api-filters input {
+	width: 160px;
+}
+.row-actions {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+.row-actions button {
+	font-size: 11px;
+}
+.record-details {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 0 24px;
+}
+.record-details > div {
+	padding: 12px 0;
+	border-bottom: 1px solid var(--border);
+}
+.record-details dt {
+	color: var(--muted);
+	font-size: 12px;
+	margin-bottom: 5px;
+}
+.record-details dd {
+	margin: 0;
+	overflow-wrap: anywhere;
+	white-space: pre-wrap;
+}
+.record-section {
+	margin-top: 20px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border);
+}
+.record-section h3 {
+	font-size: 14px;
+	font-weight: 650;
+}
+.action-dialog {
+	width: min(580px, calc(100vw - 32px));
+	max-height: 85vh;
+	margin: auto;
+	padding: 28px;
+	border: 1px solid var(--border);
+	border-radius: 11px;
+	background: #fff;
+	color: #1d2433;
+	overflow-y: auto;
+}
+.action-dialog::backdrop {
+	background: rgb(21 28 48 / 50%);
+}
+.action-dialog h2 {
+	font-size: 20px;
+	font-weight: 650;
+	margin: 0 0 20px;
+}
+.action-dialog form,
+.contract-field {
+	display: grid;
+	gap: 8px;
+}
+.action-dialog form {
+	gap: 18px;
+}
+.contract-field label,
+.field-label {
+	font-size: 12px;
+	font-weight: 600;
+}
+.checkbox-field {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.checkbox-field input {
+	width: auto;
+	min-height: 0;
+}
+.dialog-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 9px;
+	margin-top: 20px;
+}
+.detail-actions {
+	justify-content: flex-start;
+	margin-bottom: 16px;
+}
+.nested-fields {
+	border: 1px solid var(--border);
+	padding: 14px;
+	border-radius: 7px;
+	display: grid;
+	gap: 12px;
+}
+.pagination {
+	align-items: center;
+}
+.api-list + .api-list,
+.block + .block {
+	margin-top: 18px;
+}
+button:disabled {
+	cursor: not-allowed;
+	opacity: 0.5;
+}
+.identity-document {
+	display: block;
+	max-width: 100%;
+	max-height: 480px;
+	object-fit: contain;
+	margin: 16px 0;
+}
+.review-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 18px;
+}
+.review-grid .block {
+	margin-top: 0;
+}

@@ -1,56 +1,27 @@
-# sv
+# INvenit Backoffice
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+SvelteKit 3, Svelte 5, TypeScript, and TanStack Svelte Query. The app connects to the Admin API through explicit SvelteKit server endpoints and encrypted HttpOnly session cookies.
 
-## Creating a project
+## Run locally
 
-If you're seeing this, you've probably already done this step. Congrats!
+1. Install dependencies with `pnpm install`.
+2. Copy `.env.example` to `.env` and set the private API origin and a random session secret of at least 32 characters.
+3. Run `pnpm dev` and open `/login`. Use your admin credentials and Google Authenticator code.
 
-```sh
-# create a new project
-npx sv create my-app
-```
+No credentials are stored in the repository. See [API integration and known contract gaps](docs/admin-api.md).
 
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-pnpm dlx sv@1.1.1 create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright="demo:no" tailwindcss="plugins:typography" --install pnpm invenit-backoffice
-```
-
-## Adding features
-
-Add features to your project with `sv add`:
+## Checks
 
 ```sh
-npx sv add
+pnpm check
+pnpm lint
+pnpm build
+pnpm exec vitest run --project server
+pnpm test:e2e
 ```
 
-For example, to add Tailwind CSS:
+Browser tests start a local API fixture; they never call UAT. Regenerate API types and explicit resource endpoints with `pnpm api:generate` after updating `openapi/admin.json`.
 
-```sh
-npx sv add tailwindcss
-```
+## Production
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+The Node adapter builds the server into `build/`. Provide `ADMIN_API_BASE_URL`, `SESSION_SECRET`, and the deployment origin in the runtime environment, then run `pnpm start`. Keep the session secret stable across instances. HTTPS is required for Secure cookies in deployment.
