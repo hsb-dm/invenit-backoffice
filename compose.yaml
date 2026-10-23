@@ -6,6 +6,8 @@ services:
     environment:
       HOST: 0.0.0.0
       NODE_ENV: production
+      ADMIN_API_BASE_URL: ${ADMIN_API_BASE_URL:?Set ADMIN_API_BASE_URL in .env}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
       ORIGIN: ${ORIGIN:-http://localhost:1919}
       PORT: 1919
     ports:
